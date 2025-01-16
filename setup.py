@@ -1,0 +1,37 @@
+from setuptools import find_packages, setup
+
+setup(
+    name="people_team_data",
+    version="0.1.0",
+    description="A Dagster project for managing people team data workflows.",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    author="Jack Stehn",
+    author_email="jack@caliberschools.org",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    packages=find_packages(exclude=["people_team_data_tests"]),
+    install_requires=[
+        "black==24.10.0",
+        "dagit==1.9.8",
+        "dagster==1.9.8",
+        "dagster-cloud==1.9.8",
+        "dagster-cloud-cli==1.9.8",
+        "dagster-duckdb==0.25.8",
+        "dagster-gcp==0.25.8",
+        "dagster-graphql==1.9.8",
+        "dagster-pandas==0.25.8",
+        "dagster-pipes==1.9.8",
+        "dagster-webserver==1.9.8",
+        "gspread==6.1.4",
+        "isort==5.11.5",
+        "requests==2.32.3",
+        "duckdb==1.1.3",
+        "pandas==2.2.3",
+    ],
+    extras_require={"dev": ["dagster-webserver", "pytest", "black", "flake8", "mypy"]},
+    python_requires=">=3.9,<3.13",
+)

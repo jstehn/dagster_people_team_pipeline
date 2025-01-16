@@ -1,0 +1,22 @@
+{
+    "files.exclude": {
+        "**/__pycache__/": true,
+        "**/*.pyc": true,
+        "**/*.pyo": true
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        },
+    },
+    "black-formatter.args": [
+        "--line-length",
+        "88",
+        "--target-version",
+        "[py312]"
+    ],
+    "isort.args":["--profile", "black"],
+    "editor.rulers": [79],
+}

@@ -1,0 +1,17 @@
+*.DS_Store*
+people_team_data/data/dev/*
+people_team_data/data/processed/*
+people_team_data/data/raw/*
+*.csv*
+*.env*
+*.log*
+*.db*
+*.venv*
+people_team_data/history
+people_team_data/logs
+people_team_data/storage
+people_team_data/schedules/schedules.db
+people_team_data/.telemetry
+people_team_data/.nux
+people_team_data/.logs_queue
+*__pycache__*
