@@ -15,5 +15,6 @@ defs = Definitions(
     #sensors=[sensors.my_sensor],
     resources={
         "database": resources.db_resource,
+        "google_service_account": resources.google_service_account,
     },
 )
