@@ -64,7 +64,7 @@ def position_control_sheets(context: AssetExecutionContext) -> Output:
 
 def create_position_control_csv_asset(sheet_name: str):
     @asset(name=f"position_control_{sheet_name.lower()}", deps=[AssetKey("position_control_sheets")])
-    def position_control_asset(context: AssetExecutionContext, database: DuckDBResource, position_control_sheets: list[str]) -> None:
+    def position_control_asset(context: AssetExecutionContext, database: DuckDBResource, position_control_sheets: list[str]) -> str:
         """Loads the contents of a specific CSV file for a sheet and uploads it to the DuckDB database."""
         file_path = next((path for path in position_control_sheets if sheet_name in path), None)
         if not file_path:
@@ -90,7 +90,7 @@ def create_position_control_csv_asset(sheet_name: str):
             "preview": MetadataValue.md(df.head().to_markdown()),
         }
 
-        return Output(value=df, metadata=metadata)
+        return Output(value=f'position_control_{sheet_name.lower()}', metadata=metadata)
 
     return position_control_asset
 
