@@ -15,3 +15,4 @@ people_team_data/.telemetry
 people_team_data/.nux
 people_team_data/.logs_queue
 *__pycache__*
+*people_team_data.egg-info
