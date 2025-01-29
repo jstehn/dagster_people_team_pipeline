@@ -64,9 +64,10 @@ def position_control_sheets(context: AssetExecutionContext) -> Output[list[str]]
     return Output(value=file_paths, metadata=metadata)
 
 def create_position_control_csv_asset(sheet_name: str, config: dict = None):
-    config = config or dict()
+    config = config or {}
     deps = ["position_control_sheets"] + [field.split(".")[0] for field in config.get("foreign_keys", {}).values()]
-    @asset(name=f"position_control_{sheet_name.lower()}", deps=[AssetKey(deps)])
+    
+    @asset(name=f"position_control_{sheet_name.lower()}", deps=[AssetKey(dep) for dep in deps])
     def position_control_asset(context: AssetExecutionContext, database: DuckDBResource, position_control_sheets: list[str]) -> Output[str]:
         """Loads the contents of a specific CSV file for a sheet and uploads it to the DuckDB database."""
         file_path = next((path for path in position_control_sheets if sheet_name in path), None)
@@ -80,9 +81,15 @@ def create_position_control_csv_asset(sheet_name: str, config: dict = None):
             # Convert columns to the specified types
             for column, dtype in config.get("columns", {}).items():
                 if dtype == "currency":
-                    df[column] = df[column].apply(currency_to_decimal)
+                    df[column] = pd.to_numeric(df[column].apply(currency_to_decimal), errors='coerce', downcast='float')
+                elif dtype == "datetime64[ns]":
+                    df[column] = pd.to_datetime(df[column], errors='coerce')
+                elif dtype == "int":
+                    df[column] = pd.to_numeric(df[column], errors='coerce', downcast='integer')
+                elif dtype == "float":
+                    df[column] = pd.to_numeric(df[column], errors='coerce', downcast='float')
                 else:
-                    df[column] = df[column].astype(dtype)
+                    df[column] = df[column].astype(dtype, errors='ignore')
 
             # Drop rows with null values in non-null columns
             non_null_columns = config.get("non_null", [])
@@ -113,7 +120,7 @@ def create_position_control_csv_asset(sheet_name: str, config: dict = None):
 # Create assets for each sheet
 positions_config = {
     "columns": {
-        "Position_ID": "int",
+        "Position_ID": "str",
         "Position_Unique":  "bool",
         "Assignment_Count": "int",
         "Position_Start": "datetime64[ns]",
@@ -131,14 +138,6 @@ positions_config = {
         "Position_Credential": "str",
         "Position_Supervisor": "str",
         "Position_Represented": "str",
-        "Position_Permissions1": "str",
-        "Position_Permissions2": "str",
-        "Position_Permissions3": "str",
-        "Position_Permissions4": "str",
-        "Position_Reporting1": "str",
-        "Position_Reporting2": "str",
-        "Position_Reporting3": "str",
-        "Position_Reporting4": "str",
         "Notes": "str",
     },
     "primary_key": "Position ID",
@@ -168,7 +167,6 @@ employees_config = {
         "Employee_Hispanic": "str",
         "Employee_CALPADSStartYearCertificated": "str",
         "Employee_CALPADSCaliberStartYearCertificated": "str",
-        "Employee_Reporting3": "str",
         "Notes": "str",
     },
     "primary_key": "Employee_ID",
@@ -197,7 +195,7 @@ adjustments_config = {
         "Assignment_Full": "position_control_assignments.Assignment_Full"
     }
 }
-position_control_adjustments = create_position_control_csv_asset("Adjustments", config=adjustments_config) #TODO: Make this is dependent on assignments
+position_control_adjustments = create_position_control_csv_asset("Adjustments", config=adjustments_config)
 
 stipends_config = {
     "columns": {
@@ -225,7 +223,7 @@ stipends_config = {
         "Employee_ID": "position_control_employees.Employee_ID"
     }
 }
-position_control_stipends = create_position_control_csv_asset("Stipends", config=stipends_config) #TODO: Make this is dependent on positions and employees
+position_control_stipends = create_position_control_csv_asset("Stipends", config=stipends_config)
 
 assignments_config = {
     "columns": {
@@ -253,9 +251,6 @@ assignments_config = {
         "Position_Goal": "str",
         "Assignment_Resource": "str",
         "Assignment_FullResource": "str",
-        "Assignment_Reporting1": "str",
-        "Assignment_Reporting2": "str",
-        "Assignment_Reporting3": "str",
         "Notes": "str",
     },
     "primary_key": "Assignment_ID",
@@ -265,4 +260,4 @@ assignments_config = {
         "Employee_ID": "position_control_employees.Employee_ID"
     }
 }
-position_control_assignments = create_position_control_csv_asset("Assignments", config=assignments_config) #TODO: Make this is dependent on positions and employees
+position_control_assignments = create_position_control_csv_asset("Assignments", config=assignments_config)

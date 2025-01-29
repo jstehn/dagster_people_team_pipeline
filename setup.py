@@ -30,6 +30,7 @@ setup(
         "isort==5.11.5",
         "requests==2.32.3",
         "duckdb==1.1.3",
+        "duckdb-engine==0.15.0",
         "pandas==2.2.3",
     ],
     extras_require={"dev": ["dagster-webserver", "pytest", "black", "flake8", "mypy"]},
