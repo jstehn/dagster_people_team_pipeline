@@ -15,6 +15,7 @@ dependencies = [
     "dagster-gcp==0.25.8",
     "dagster-pandas==0.25.8",
     "dagster-pipes==1.9.8",
+    "dagster-postgres==0.25.8",
     "dagster-webserver==1.9.8",
     "requests==2.32.3",
     "duckdb==1.1.3",

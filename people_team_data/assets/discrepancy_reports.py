@@ -1,17 +1,25 @@
 import pandas as pd
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
-from dagster_duckdb import DuckDBResource
+from ..resources import postgres_db
 
-
-@asset(deps=["paycom_report", "bamboohr_report"])
-def employee_discrepancy_report(
-    context: AssetExecutionContext,
-    duckdb: DuckDBResource,
-) -> MaterializeResult:
+@asset(
+    deps=["paycom_report", "bamboohr_report"],
+    required_resource_keys={"postgres_db"},
+    resource_defs={
+        "postgres_db": postgres_db.configured({
+            "dbname": "calibrate",
+            "user": "postgres",
+            "password": "postgres",
+            "host": "localhost",
+            "port": 5432,
+        })
+    },
+)
+def employee_discrepancy_report(context: AssetExecutionContext) -> MaterializeResult:
     """A report of all discrepancies between source information."""
-    return #TODO: Implement
     # Query the paycom_report and bamboohr_report tables from the database
-    with database.get_connection() as conn:
+    return
+    with context.resources.postgres_db as conn:
         paycom_df = pd.read_sql("SELECT * FROM paycom_report", conn)
         bamboohr_df = pd.read_sql("SELECT * FROM bamboohr_report", conn)
 
@@ -30,15 +38,7 @@ def employee_discrepancy_report(
     # Log the discrepancies
     context.log.info(f"Found discrepancies:\n{discrepancies}")
 
-    # Save the discrepancies to a new table in the database
-    discrepancies_table = "employee_discrepancies"
-    with database.get_connection() as conn:
-        discrepancies.to_sql(discrepancies_table, conn, if_exists="replace")
-
-    # Prepare metadata for the MaterializeResult
-    metadata = {
-        "num_discrepancies": MetadataValue.int(discrepancies.shape[0]),
-        "discrepancies_table": MetadataValue.text(discrepancies_table),
-    }
-
-    return MaterializeResult(metadata=metadata)
+    return MaterializeResult(
+        asset_key="employee_discrepancy_report",
+        metadata={"discrepancies": MetadataValue.text(str(discrepancies))}
+    )

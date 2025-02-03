@@ -26,6 +26,7 @@ setup(
         "dagster-graphql==1.9.8",
         "dagster-pandas==0.25.8",
         "dagster-pipes==1.9.8",
+        "dagster-postgres==0.25.8",
         "dagster-webserver==1.9.8",
         "gspread==6.1.4",
         "isort==5.11.5",

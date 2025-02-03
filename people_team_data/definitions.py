@@ -1,7 +1,6 @@
 # people_team_data/definitions.py
 
 from dagster import Definitions, load_assets_from_modules
-from dagster_duckdb import DuckDBResource
 
 from . import assets, resources  # , jobs, schedules, sensors
 from .utils.constants import DUCKDB_LOCATION
@@ -16,7 +15,7 @@ defs = Definitions(
     #schedules=[schedules.my_schedule],
     #sensors=[sensors.my_sensor],
     resources={
-        "duckdb": DuckDBResource(database=DUCKDB_LOCATION),
+        "postgres_db": resources.postgres_db,
         "google_service_account": resources.google_service_account,
     },
 )

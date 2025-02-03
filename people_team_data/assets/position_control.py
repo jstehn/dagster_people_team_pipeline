@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import psycopg2
 
 import gspread
 import pandas as pd
@@ -11,9 +12,8 @@ from dagster import (
     Output,
     asset,
 )
-from dagster_duckdb import DuckDBResource
 from google.oauth2.service_account import Credentials
-
+from ..resources import postgres_db
 from ..config.asset_configs import (
     pc_adjustments_config,
     pc_assignments_config,
@@ -21,6 +21,7 @@ from ..config.asset_configs import (
     pc_positions_config,
     pc_stipends_config,
 )
+
 from ..utils import apply_config_to_dataframe
 from ..utils.constants import POSITION_CONTROL_SHEETS_DIR
 
@@ -74,9 +75,19 @@ def create_position_control_csv_asset(sheet_name: str, config: dict):
     
     @asset(
         name=f"position_control_{sheet_name.lower()}",
-        deps=[AssetKey(dep) for dep in deps]
+        deps=[AssetKey(dep) for dep in deps],
+        resource_defs={
+            "postgres_db": postgres_db.configured({
+                "dbname": "calibrate",
+                "user": "postgres",
+                "password": "postgres",
+                "host": "localhost",
+                "port": 5432,
+            })
+        },
+        required_resource_keys={"postgres_db"}
     )
-    def position_control_asset(context: AssetExecutionContext, duckdb: DuckDBResource, position_control_sheets: list[str]) -> Output[str]:
+    def position_control_asset(context: AssetExecutionContext, position_control_sheets: list[str]) -> Output[str]:
         """Loads the contents of a specific CSV file for a sheet and uploads it to the DuckDB database."""
         file_path = next((path for path in position_control_sheets if sheet_name in path), None)
         if not file_path:
@@ -88,8 +99,19 @@ def create_position_control_csv_asset(sheet_name: str, config: dict):
         df = apply_config_to_dataframe(df, config)
         context.log.info(f"Loaded CSV file '{file_path}' with {df.shape[0]} rows and {df.shape[1]} columns")
         df.dropna(how='all', inplace=True)
-        with duckdb.get_connection() as conn:
-            conn.execute(f"CREATE OR REPLACE TABLE position_control_{sheet_name.lower()} AS SELECT * FROM df") 
+        with context.resources.postgres_db as conn:
+            cursor = conn.cursor()
+            table_name = f"position_control_{sheet_name.lower()}"
+            cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+            create_table_query = f"""
+            CREATE TABLE {table_name} (
+                {', '.join([f'{col} TEXT' for col in df.columns])}
+            )
+            """
+            cursor.execute(create_table_query)
+            insert_query = f"INSERT INTO {table_name} VALUES %s"
+            psycopg2.extras.execute_values(cursor, insert_query, df.values)
+            conn.commit()
 
         metadata = {
             "file_path": MetadataValue.path(file_path),
