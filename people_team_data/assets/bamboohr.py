@@ -14,8 +14,6 @@ from dagster import (
     asset,
 )
 
-from people_team_data.resources.db_resource import DuckDBResource
-
 from ..utils import currency_to_decimal, is_camel_case, to_camel_case
 from ..utils.constants import BAMBOOHR_REPORT_FILE_TEMPLATE
 
@@ -54,9 +52,9 @@ def bamboohr_report_file(context: AssetExecutionContext) -> Output:
     return Output(value=file_path, metadata=metadata)
 
 
-@asset(deps=[AssetKey("bamboohr_report_file")])
+@asset(required_resource_keys={"db_resource"}, deps=[AssetKey("bamboohr_report_file")])
 def bamboohr_report(
-    context: AssetExecutionContext, database: DuckDBResource, bamboohr_report_file: str
+    context: AssetExecutionContext, bamboohr_report_file: str
 ) -> None:
     """Database table of all active employees in BambooHR."""
     with open(bamboohr_report_file, "r") as f:
@@ -111,7 +109,7 @@ def bamboohr_report(
         f"Filtered out {initial_row_count - filtered_row_count} "
         f"rows with missing employeeNumber and are not active."
     )
-
+ 
     # Set Employee # as index
     df.drop(columns=["id"], inplace=True)
 
@@ -125,15 +123,17 @@ def bamboohr_report(
         )
 
     context.log.debug(f"Set up DataFrame for upload:\n{df.describe()}")
-    with database.get_connection() as conn:
+    Session = context.resources.db_resource
+    with Session() as session:
         df.to_sql(
             name='bamboohr_report',
-            con=conn,
+            con=session.bind,
             if_exists='replace',
             index=False,
             method='multi',
             dtype={"employeeNumber": "INTEGER PRIMARY KEY"}
         )
+        session.commit()
     context.log.info("BambooHR report data loaded into the database")
     df_preview = df.head().to_markdown()
     metadata = {

@@ -14,7 +14,7 @@ defs = Definitions(
     #schedules=[schedules.my_schedule],
     #sensors=[sensors.my_sensor],
     resources={
-        "database": resources.db_resource,
+        "db_resource": resources.db_resource,
         "google_service_account": resources.google_service_account,
     },
 )

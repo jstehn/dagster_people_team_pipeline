@@ -1,12 +1,10 @@
 import pandas as pd
 from dagster import AssetExecutionContext, MaterializeResult, MetadataValue, asset
 
-from people_team_data.resources.db_resource import DuckDBResource
 
-
-@asset(deps=["paycom_report", "bamboohr_report"])
+@asset(required_resource_keys={"db_resource"}, deps=["paycom_report", "bamboohr_report"])
 def employee_discrepancy_report(
-    context: AssetExecutionContext, database: DuckDBResource
+    context: AssetExecutionContext
 ) -> MaterializeResult:
     """A report of all discrepancies between source information."""
     return #TODO: Implement

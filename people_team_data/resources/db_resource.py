@@ -15,4 +15,4 @@ def db_resource(context: InitResourceContext):
         max_overflow=10,  # Adjust the overflow size as needed
     )
     Session = sessionmaker(bind=engine)
-    return Session()
+    return Session
