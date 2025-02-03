@@ -21,6 +21,7 @@ setup(
         "dagster-cloud==1.9.8",
         "dagster-cloud-cli==1.9.8",
         "dagster-duckdb==0.25.8",
+        "dagster-duckdb-pandas==0.25.8",
         "dagster-gcp==0.25.8",
         "dagster-graphql==1.9.8",
         "dagster-pandas==0.25.8",

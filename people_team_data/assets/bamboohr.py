@@ -13,6 +13,7 @@ from dagster import (
     Output,
     asset,
 )
+from dagster_duckdb import DuckDBResource
 
 from ..utils import currency_to_decimal, is_camel_case, to_camel_case
 from ..utils.constants import BAMBOOHR_REPORT_FILE_TEMPLATE
@@ -52,9 +53,9 @@ def bamboohr_report_file(context: AssetExecutionContext) -> Output:
     return Output(value=file_path, metadata=metadata)
 
 
-@asset(required_resource_keys={"db_resource"}, deps=[AssetKey("bamboohr_report_file")])
+@asset(deps=[AssetKey("bamboohr_report_file")])
 def bamboohr_report(
-    context: AssetExecutionContext, bamboohr_report_file: str
+    context: AssetExecutionContext, duckdb:DuckDBResource, bamboohr_report_file: str
 ) -> None:
     """Database table of all active employees in BambooHR."""
     with open(bamboohr_report_file, "r") as f:
@@ -123,17 +124,8 @@ def bamboohr_report(
         )
 
     context.log.debug(f"Set up DataFrame for upload:\n{df.describe()}")
-    Session = context.resources.db_resource
-    with Session() as session:
-        df.to_sql(
-            name='bamboohr_report',
-            con=session.bind,
-            if_exists='replace',
-            index=False,
-            method='multi',
-            dtype={"employeeNumber": "INTEGER PRIMARY KEY"}
-        )
-        session.commit()
+    with duckdb.get_connection() as conn:
+        conn.execute("CREATE OR REPLACE TABLE bamboohr_report AS SELECT * FROM df")
     context.log.info("BambooHR report data loaded into the database")
     df_preview = df.head().to_markdown()
     metadata = {

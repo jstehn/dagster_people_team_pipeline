@@ -11,10 +11,10 @@ from dagster import (
     Output,
     asset,
 )
+from dagster_duckdb import DuckDBResource
 from google.oauth2.service_account import Credentials
 
 from ..config.asset_configs import (
-    TableConfig,
     pc_adjustments_config,
     pc_assignments_config,
     pc_employees_config,
@@ -69,17 +69,14 @@ def position_control_sheets(context: AssetExecutionContext) -> Output[list[str]]
 
     return Output(value=file_paths, metadata=metadata)
 
-def create_position_control_csv_asset(sheet_name: str, config: dict = None):
-    config = config or {}
+def create_position_control_csv_asset(sheet_name: str, config: dict):
     deps = ["position_control_sheets"] + [field.split(".")[0] for field in config.get("foreign_keys", {}).values()]
     
     @asset(
         name=f"position_control_{sheet_name.lower()}",
-        required_resource_keys={"db_resource"},
-        deps=[AssetKey(dep) for dep in deps],
-        config_schema=TableConfig
+        deps=[AssetKey(dep) for dep in deps]
     )
-    def position_control_asset(context: AssetExecutionContext, position_control_sheets: list[str]) -> Output[str]:
+    def position_control_asset(context: AssetExecutionContext, duckdb: DuckDBResource, position_control_sheets: list[str]) -> Output[str]:
         """Loads the contents of a specific CSV file for a sheet and uploads it to the DuckDB database."""
         file_path = next((path for path in position_control_sheets if sheet_name in path), None)
         if not file_path:
@@ -88,21 +85,11 @@ def create_position_control_csv_asset(sheet_name: str, config: dict = None):
         df = pd.read_csv(file_path)
 
         # Apply the configuration to the DataFrame
-        if config:
-            df = apply_config_to_dataframe(df, config)
-
+        df = apply_config_to_dataframe(df, config)
         context.log.info(f"Loaded CSV file '{file_path}' with {df.shape[0]} rows and {df.shape[1]} columns")
         df.dropna(how='all', inplace=True)
-        Session = context.resources.db_resource
-        with Session() as session:
-            df.to_sql(
-                name=f'position_control_{sheet_name.lower()}',
-                con=session.bind,
-                if_exists='replace',
-                index=False,
-                method='multi'
-            )
-            session.commit()
+        with duckdb.get_connection() as conn:
+            conn.execute(f"CREATE OR REPLACE TABLE position_control_{sheet_name.lower()} AS SELECT * FROM df") 
 
         metadata = {
             "file_path": MetadataValue.path(file_path),

@@ -31,10 +31,11 @@ def currency_to_decimal(s: str):
 def apply_config_to_dataframe(df: pd.DataFrame, config: dict) -> pd.DataFrame:
     """Mutatively pplies the configuration to the DataFrame."""
     # Convert columns to the specified types
+    df = df.astype(str)
     for column, dtype in config.get("columns", {}).items():
         if dtype == "currency":
             df[column] = pd.to_numeric(df[column].apply(currency_to_decimal), errors='coerce', downcast='float')
-        elif dtype == "datetime64[ns]":
+        elif "datetime" in dtype:
             df[column] = pd.to_datetime(df[column], errors='coerce')
         elif dtype == "int":
             df[column] = pd.to_numeric(df[column], errors='coerce', downcast='integer')

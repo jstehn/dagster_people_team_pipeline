@@ -1,12 +1,5 @@
 # people_team_data/config/asset_configs.py
-from dagster import Config, Field
-
-
-class TableConfig(Config):
-    columns: dict = Field(..., description="Column definitions for the asset")
-    primary_key: str = Field(..., description="Primary key for the asset")
-    non_null: list = Field(default=[], description="Non-null columns for the asset")
-    foreign_keys: dict = Field(default={}, description="Foreign keys for the asset")
+from dagster import Field, Shape
 
 # Configurations related to Position Control assets
 pc_positions_config = {
@@ -145,4 +138,13 @@ pc_assignments_config = {
         "Position_ID": "position_control_positions.Position_ID",
         "Employee_ID": "position_control_employees.Employee_ID"
     }
+}
+
+paycom_config = {
+    "Hire_Date": "datetime64[ns]",
+    "Rehire_Date": "datetime64[ns]",
+    "Termination_Date": "datetime64[ns]",
+    "Salary": "currency",
+    "Rate_1": "currency",
+    "Annual_Salary": "currency",
 }
