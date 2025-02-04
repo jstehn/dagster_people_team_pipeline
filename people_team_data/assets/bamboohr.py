@@ -13,10 +13,9 @@ from dagster import (
     Output,
     asset,
 )
-from ..resources import PostgresDBResource
 from ..utils import currency_to_decimal, is_camel_case, to_camel_case
 from ..utils.constants import BAMBOOHR_REPORT_FILE_TEMPLATE
-from people_team_data.resources.postgres_db_resource import postgres_db
+from ..resources import postgres_db
 
 
 
@@ -56,15 +55,6 @@ def bamboohr_report_file(context: AssetExecutionContext) -> Output:
 
 @asset(
     required_resource_keys={"postgres_db"},
-    resource_defs={
-        "postgres_db": postgres_db.configured({
-            "dbname": "calibrate",
-            "user": "postgres",
-            "password": "postgres",
-            "host": "localhost",
-            "port": 5432,
-        })
-    },
     deps=["bamboohr_report_file"],
 )
 def bamboohr_report(context: AssetExecutionContext, bamboohr_report_file: Output) -> Output[pd.DataFrame]:
@@ -108,19 +98,9 @@ def bamboohr_report(context: AssetExecutionContext, bamboohr_report_file: Output
     context.log.debug(f"Set up DataFrame for upload:\n{df.describe()}")
 
     # Upload DataFrame to PostgreSQL
-    with context.resources.postgres_db as conn:
-        cursor = conn.cursor()
-        table_name = "bamboohr_report"
-        cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
-        create_table_query = f"""
-        CREATE TABLE {table_name} (
-            {', '.join([f'{col} TEXT' for col in df.columns])}
-        )
-        """
-        cursor.execute(create_table_query)
-        insert_query = f"INSERT INTO {table_name} VALUES %s"
-        psycopg2.extras.execute_values(cursor, insert_query, df.values)
-        conn.commit()
+    engine = context.resources.postgres_db
+    df.to_sql("bamboohr_report", engine, if_exists="replace", index=False)
+
 
     context.log.info("BambooHR report data loaded into the database")
 

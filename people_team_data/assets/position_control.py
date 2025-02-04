@@ -72,19 +72,10 @@ def position_control_sheets(context: AssetExecutionContext) -> Output[list[str]]
 
 def create_position_control_csv_asset(sheet_name: str, config: dict):
     deps = ["position_control_sheets"] + [field.split(".")[0] for field in config.get("foreign_keys", {}).values()]
-    
+    table_name = f"position_control_{sheet_name.lower()}"
     @asset(
-        name=f"position_control_{sheet_name.lower()}",
+        name=table_name,
         deps=[AssetKey(dep) for dep in deps],
-        resource_defs={
-            "postgres_db": postgres_db.configured({
-                "dbname": "calibrate",
-                "user": "postgres",
-                "password": "postgres",
-                "host": "localhost",
-                "port": 5432,
-            })
-        },
         required_resource_keys={"postgres_db"}
     )
     def position_control_asset(context: AssetExecutionContext, position_control_sheets: list[str]) -> Output[str]:
@@ -99,19 +90,9 @@ def create_position_control_csv_asset(sheet_name: str, config: dict):
         df = apply_config_to_dataframe(df, config)
         context.log.info(f"Loaded CSV file '{file_path}' with {df.shape[0]} rows and {df.shape[1]} columns")
         df.dropna(how='all', inplace=True)
-        with context.resources.postgres_db as conn:
-            cursor = conn.cursor()
-            table_name = f"position_control_{sheet_name.lower()}"
-            cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
-            create_table_query = f"""
-            CREATE TABLE {table_name} (
-                {', '.join([f'{col} TEXT' for col in df.columns])}
-            )
-            """
-            cursor.execute(create_table_query)
-            insert_query = f"INSERT INTO {table_name} VALUES %s"
-            psycopg2.extras.execute_values(cursor, insert_query, df.values)
-            conn.commit()
+        engine = context.resources.postgres_db
+        df.to_sql(table_name, engine, if_exists="replace", index=False)
+
 
         metadata = {
             "file_path": MetadataValue.path(file_path),
@@ -120,7 +101,7 @@ def create_position_control_csv_asset(sheet_name: str, config: dict):
             "preview": MetadataValue.md(df.head().to_markdown()),
         }
 
-        return Output(value=f'position_control_{sheet_name.lower()}', metadata=metadata)
+        return Output(value=table_name, metadata=metadata)
 
     return position_control_asset
 

@@ -5,15 +5,6 @@ from ..resources import postgres_db
 @asset(
     deps=["paycom_report", "bamboohr_report"],
     required_resource_keys={"postgres_db"},
-    resource_defs={
-        "postgres_db": postgres_db.configured({
-            "dbname": "calibrate",
-            "user": "postgres",
-            "password": "postgres",
-            "host": "localhost",
-            "port": 5432,
-        })
-    },
 )
 def employee_discrepancy_report(context: AssetExecutionContext) -> MaterializeResult:
     """A report of all discrepancies between source information."""
