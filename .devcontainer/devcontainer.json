@@ -15,7 +15,24 @@
         "vscode": {
             "extensions": [
                 "mtxr.sqltools",
-                "mtxr.sqltools-driver-pg"
+                "mtxr.sqltools-driver-pg",
+                "ms-python.black-formatter",
+                "ms-python.isort",
+                "njpwerner.autodocstring",
+                "freakypie.code-python-isort",
+                "ms-toolsai.datawrangler",
+                "ms-azuretools.vscode-docker",
+                "eamodio.gitlens",
+                "eriklynd.json-tools",
+                "ms-toolsai.jupyter",
+                "ms-vsliveshare.vsliveshare",
+                "ritwickdey.LiveServer",
+                "yzhang.markdown-all-in-one",
+                "bierner.markdown-mermaid",
+                "mechatroner.rainbow-csv",
+                "adpyke.vscode-sql-formatter",
+                "rjmacarthy.twinny",
+                "ms-vscode.git"
             ],
             "settings": {
                 "sqltools.connections": [
@@ -29,7 +46,9 @@
                         "username": "postgres",
                         "password": "postgres"
                     }
-                ]
+                ],
+                "git.userEmail": "jack@caliberschools.org",
+                "git.userName": "Jack Stehn"
             }
         }
     },
