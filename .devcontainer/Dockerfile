@@ -6,9 +6,6 @@ ENV PYTHONUNBUFFERED 1
 COPY requirements.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt \
    && rm -rf /tmp/pip-tmp
-# Set up git
-RUN git config --global user.email "you@example.com"
-RUN git config --global user.name "Jack Stehn"
 
 # Install PostgreSQL command line tools to access the postgres server in sibling container:
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
