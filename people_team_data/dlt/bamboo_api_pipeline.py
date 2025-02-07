@@ -1,5 +1,6 @@
 import dlt
 from dlt.sources.helpers.rest_client.auth import HttpBasicAuth
+from dlt.sources.helpers.rest_client.paginators import PageNumberPaginator
 from dlt.sources.rest_api import EndpointResource, rest_api_source
 
 
@@ -26,12 +27,10 @@ def bamboohr(
                     "method": "POST",
                     "json": {"fields": fields},
                     "params": {"format": "JSON"},
-                    "paginator": {
-                        "type": "offset",
-                        "offset_param": "offset",
-                        "limit_param": "limit",
-                        "limit": 100,
-                    },
+                    "paginator": PageNumberPaginator(
+                        page_param="pagination.page",
+                        total_path="pagination.total_pages",
+                    ),
                 },
             )
         ],
@@ -54,4 +53,5 @@ if __name__ == "__main__":
     )
 
     # Print output location
+    print(f"Data saved to: {pipeline.working_dir}")
     print(f"Data saved to: {pipeline.working_dir}")
