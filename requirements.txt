@@ -12,8 +12,11 @@ dagster-pipes
 dagster-postgres
 dagster-webserver
 dbt
-dlt
+dlt[bigquery,filesystem,sqlalchem,duckdb]
+duckdb
 gspread
 isort
 requests
 pandas
+psycopg2
+streamlit
