@@ -28,16 +28,18 @@ setup(
         "dagster-pipes",
         "dagster-postgres",
         "dagster-webserver",
-        "duckdb"
-        "dbt",
-        "dlt[bigquery,filesystem,sqlalchemy,duckdb]",
+        "duckdbdbt",
+        "dlt[bigquery,filesystem,sqlalchemy,duckdb,postgres]",
+        "google-api-python-client",
         "gspread",
         "isort",
         "requests",
         "pandas",
         "psycopg2",
-        "streamlit"
+        "streamlit",
     ],
-    extras_require={"dev": ["dagster-webserver", "pytest", "black", "flake8", "mypy"]},
+    extras_require={
+        "dev": ["dagster-webserver", "pytest", "black", "flake8", "mypy"]
+    },
     python_requires=">=3.9,<3.13",
 )

@@ -1,3 +1,3 @@
-dlt[bigquery,filesystem,sqlalchemy,duckdb]>=1.6.1
+dlt[bigquery,filesystem,sqlalchemy,duckdb,postgres]>=1.6.1
 psycopg2
 streamlit
