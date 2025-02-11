@@ -19,3 +19,4 @@ people_team_data/.logs_queue
 people_team_data/dlt/allfields.txt
 people_team_data/dlt/.dlt/scratchpad.ipynb
 people_team_data/dlt/.dlt/fields.json
+*secrets.toml
