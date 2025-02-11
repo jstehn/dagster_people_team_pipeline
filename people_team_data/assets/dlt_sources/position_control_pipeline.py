@@ -1,5 +1,6 @@
 import dlt
-from google_sheets import google_spreadsheet
+
+from .google_sheets import google_spreadsheet
 
 
 @dlt.source(name="position_control_source")
@@ -92,4 +93,5 @@ if __name__ == "__main__":
         dataset_name="position_control_data",
     )
     info = pipeline.run(position_control_source())
+    print(info)
     print(info)

@@ -35,6 +35,7 @@ setup(
         "isort",
         "requests",
         "pandas",
+        "psutil",
         "psycopg2",
         "streamlit",
     ],

@@ -16,7 +16,7 @@ logging.basicConfig(
 class BambooHRPaginator(BasePaginator):
     """Paginator for BambooHR API to handle pagination of results."""
 
-    def __init__(self, page_size=100):
+    def __init__(self, page_size=50):
         super().__init__()
         self.page = 1
         self.page_size = page_size
@@ -90,8 +90,8 @@ def bamboohr_source(
     # Create the raw data resource
     raw_source = rest_api_source(config)
 
-    @dlt.resource(name="processed_employee_data", primary_key="employeeNumber")
-    def processed_employee_data(raw_employee_data):
+    @dlt.resource(name="employee_data", primary_key="employeeNumber")
+    def employee_data(raw_employee_data):
         """
         Process raw employee data to normalize employee numbers.
 
@@ -116,7 +116,7 @@ def bamboohr_source(
     raw_data = raw_source.resources["raw_employee_data"]
 
     # Return the processed data resource
-    return processed_employee_data(raw_data)
+    return employee_data(raw_data)
 
 
 def load_bamboohr() -> None:
