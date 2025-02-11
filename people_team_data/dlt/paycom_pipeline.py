@@ -2,27 +2,28 @@ import dlt
 from dlt.sources.filesystem import filesystem, read_csv
 
 
-# This resource creates a filesystem source that loads CSV files from your Google Drive folder.
-# The incremental hint tracks files by "modification_date" so that previously processed files are skipped.
-@dlt.resource(name="paycom_latest_csv", primary_key="Employee_Code")
-def load_latest_csv(
-    bucket_url: str = dlt.config.value, file_glob: str = dlt.config.value
-):
-    # Create the filesystem source using the provided bucket_url and file_glob.
-    fs_source = filesystem(bucket_url=bucket_url, file_glob=file_glob)
-    # Apply an incremental hint so only new or updated files are processed.
-    fs_source.apply_hints(
-        incremental=dlt.sources.incremental("modification_date")
-    )
-    filesystem_pipe = (fs_source | read_csv()).with_name("paycom_data")
-    # Instead of calling a method like fs_source.read_csv(), use the pipe operator to chain the CSV transformer.
-    return filesystem_pipe
-
-
 # Group the resource under a source schema.
 @dlt.source(name="paycom_source")
-def paycom_source():
-    return load_latest_csv()
+def paycom_source(
+    bucket_url: str = dlt.config.value, file_glob: str = dlt.config.value
+):
+    @dlt.resource(
+        name="paycom_data",
+        primary_key="Employee_Code",
+        write_disposition="merge",
+    )
+    def latest_csv():
+        # Create the filesystem source using the provided bucket_url and file_glob.
+        fs_source = filesystem(bucket_url=bucket_url, file_glob=file_glob)
+        # Apply an incremental hint so only new or updated files are processed.
+        fs_source.apply_hints(
+            incremental=dlt.sources.incremental("modification_date")
+        )
+        filesystem_pipe = fs_source | read_csv()
+        # Instead of calling a method like fs_source.read_csv(), use the pipe operator to chain the CSV transformer.
+        yield from filesystem_pipe
+
+    return latest_csv
 
 
 def run_pipeline():
