@@ -12,6 +12,8 @@ dagster-pipes
 dagster-postgres
 dagster-webserver
 dbt
+dbt-bigquery
+dbt-postgres
 dlt[bigquery,filesystem,sqlalchemy,duckdb,postgres]
 duckdb
 google-api-python-client

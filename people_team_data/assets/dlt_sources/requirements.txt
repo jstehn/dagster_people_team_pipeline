@@ -1,4 +1,0 @@
-dlt[bigquery,filesystem,sqlalchemy,duckdb,postgres]>=1.6.1
-psycopg2
-streamlit
-google-api-python-client
